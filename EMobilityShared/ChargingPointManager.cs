@@ -14,37 +14,69 @@ namespace EMobility
     {
         readonly HttpClient HttpClientConnection;
 
-         public ChargingPointManager(HttpClient httpClient)
+        record ChargingPoint(int Id, string Name, string RestUrl, string ChargePointId, VehicleConnection Connection);
+        readonly List<ChargingPoint> ChargingPoints;
+
+        public ChargingPointManager(HttpClient httpClient)
         {
             this.HttpClientConnection = httpClient;
+
+            ChargingPoints = new();
+            ChargingPoints.Add(new(-4, "TG Stellplatz 4", "http://172.16.0.146/rest/", "1384202.00082", new MennekesVehicleConnection()));     // Besucherparkplatz TG 4
+            ChargingPoints.Add(new(-5, "TG Stellplatz 5", "http://172.16.0.147/rest/", "1384202.00080", new MennekesVehicleConnection()));     // Mayer Thomas
+            ChargingPoints.Add(new(1, "Stellplatz 1", "http://172.16.0.148:81/rest/", "140812422.00057", new MennekesVehicleConnection()));    // Besucherparkplatz 1
+            ChargingPoints.Add(new(2, "Stellplatz 2", "http://172.16.0.148:82/rest/", "140812422.00057#2", new MennekesVehicleConnection()));  // Besucherparkplatz 2  / slave
+            ChargingPoints.Add(new(3, "Stellplatz 3", "http://172.16.0.149:81/rest/", "140612412.00041", new MennekesVehicleConnection()));    // Besucherparkplatz 3
+            ChargingPoints.Add(new(4, "Stellplatz 4", "http://172.16.0.149:82/rest/", "140612412.00041#2", new MennekesVehicleConnection()));  // Besucherparkplatz 4  / slave
         }
 
-        public async void CheckVehicleConnectionStates(CancellationToken cancelationToken)
+        public void CheckVehicleConnectionStates(CancellationToken cancelationToken)
         {
-            await DoWork(cancelationToken);
+            var result = Parallel.ForEach<ChargingPoint>(ChargingPoints, async item =>
+            {
+                var state = await RequestStatus(item);
+                if (item.Connection.HasNewState(state))
+                {
+                    HandleNewState(item);
+                }
+            });
+
         }
 
-        public  void CheckVehicleConnectionStates()
+        protected void CheckVehicleConnectionStates()
         {
             var cancelationToken = new CancellationToken();
             CheckVehicleConnectionStates(cancelationToken);
         }
 
-        private async Task<string> DoWork(CancellationToken cancelationToken)
+        private static void HandleNewState(ChargingPoint chargingPoint)
         {
-            var result = await HttpClientConnection.GetAsync("http://172.16.0.147/rest/conn_state", cancelationToken);
-            //var res = await HttpClientConnection.GetAsync("http://heise.de");
-            if (result.IsSuccessStatusCode)
+            Log.Information("charge point {Name} has new state -> {State}", chargingPoint.Name, chargingPoint.Connection.State);
+        }
+
+        private async Task<string> RequestStatus(ChargingPoint chargingPoint)
+        {
+            string resultText = String.Empty;
+            try
             {
-                Log.Information("WebSite is up statuscode[{StatusCode}]", result.StatusCode);
-                string responseBody = await result.Content.ReadAsStringAsync(cancelationToken);
-                return responseBody;
+                var command = "conn_state";
+                var result = await HttpClientConnection.GetAsync(String.Format("{0}{1}", chargingPoint.RestUrl, command));
+                if (result.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    string responseBody = await result.Content.ReadAsStringAsync();
+                    Log.Debug("[{Name}] Request[{Command}]  response -> {ResponseBody}", chargingPoint.Name, command, responseBody);
+                    resultText = responseBody;
+                }
+                else
+                {
+                    Log.Error("HttpResponseCode: {0} -> {1}", result.StatusCode, result.Content);
+                }
             }
-            else
+            catch (Exception e)
             {
-                Log.Error("WebSite is down statuscode[{StatusCode}]", result.StatusCode);
+                Log.Error(e, "REST GET failed: ");
             }
-            return String.Empty;
+            return resultText;
         }
 
     }
