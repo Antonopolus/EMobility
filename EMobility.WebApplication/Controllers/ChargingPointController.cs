@@ -1,41 +1,80 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using EMobility.WebApplication.Services;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using static EMobility.WebApplication.Services.ChargingPointsRepository;
 
 namespace EMobility.WebApplication.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/ChargingPoints")]
     public class ChargingPointController : ControllerBase
     {
-        readonly List<ChargingPointModel> ChargingPoints = new();
+        private readonly IChargingPointsRepository repository;
 
-        private readonly ILogger<ChargingPointController> _logger;
-
-        public ChargingPointController(ILogger<ChargingPointController> logger)
+        public ChargingPointController(ILogger<ChargingPointController> logger, IChargingPointsRepository repo)
         {
-            _logger = logger;
-            _logger.LogInformation("setup ChargingPointController");
-            ChargingPoints = new();
-            ChargingPoints.Add(new(-4, "TG Stellplatz 4", "http://172.16.0.146/rest/", "1384202.00082"));     // Besucherparkplatz TG 4
-            ChargingPoints.Add(new(-5, "TG Stellplatz 5", "http://172.16.0.147/rest/", "1384202.00080"));     // Mayer Thomas
-            ChargingPoints.Add(new(1, "Stellplatz 1", "http://172.16.0.148:81/rest/", "140812422.00057"));    // Besucherparkplatz 1
-            ChargingPoints.Add(new(2, "Stellplatz 2", "http://172.16.0.148:82/rest/", "140812422.00057#2"));  // Besucherparkplatz 2  / slave
-            ChargingPoints.Add(new(3, "Stellplatz 3", "http://172.16.0.149:81/rest/", "140612412.00041"));    // Besucherparkplatz 3
-            ChargingPoints.Add(new(4, "Stellplatz 4", "http://172.16.0.149:82/rest/", "140612412.00041#2"));  // Besucherparkplatz 4  / slave
-            foreach(var cp in ChargingPoints)
+            repository = repo;
+            logger.LogInformation("setup ChargingPointController");
+
+            foreach (var cp in repository.GetAll())
             {
-                _logger.LogInformation(cp.Name);
+                logger.LogInformation(cp.Name);
             }
         }
 
         [HttpGet]
-        public IEnumerable<ChargingPointModel> Get()
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<ChargingPointMod>))]
+        public IActionResult GetAll()
         {
-            return ChargingPoints.ToArray();
+            return Ok(repository.GetAll());
         }
+
+        [HttpGet("{id}", Name = nameof(GetById))]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ChargingPointMod))]
+        public IActionResult GetById(int id)
+        {
+            var cp = repository.GetById(id);
+            if (cp == null) return NotFound();
+            return Ok(cp);
+        }
+
+        [HttpPost]
+        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ChargingPointMod))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public IActionResult Add([FromBody] ChargingPointMod cp)
+        {
+            if(cp.Id == 0)
+            {
+                return BadRequest("Invalid ID");
+            }
+
+            var newCp = repository.Add(cp);
+            return CreatedAtAction(nameof(GetById), new { id = newCp.Id}, newCp);
+        }
+
+        [HttpDelete]
+        [Route("{ChargingPointToDeleteId}")]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        public IActionResult Delete(int chargingPointToDeleteId)
+        {
+            try
+            {
+                repository.Delete(chargingPointToDeleteId);
+            }
+            catch (ArgumentException )
+            {
+                return NotFound();
+            }
+
+            return NoContent();
+        }
+
     }
 }

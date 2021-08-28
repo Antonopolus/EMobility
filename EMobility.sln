@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EMobilityPrototype", "EMobi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EMobilityTestProject", "EMobilityTestProject\EMobilityTestProject.csproj", "{0B496D0D-F6FF-4D3C-BA97-A198E5BBAE92}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EMobility.WebApplication", "EMobility.WebApplication\EMobility.WebApplication.csproj", "{BE7D7F7A-F4D8-47CC-8734-CA1C000FDF4B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EMobility.WebApi", "EMobility.WebApplication\EMobility.WebApi.csproj", "{BE7D7F7A-F4D8-47CC-8734-CA1C000FDF4B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
