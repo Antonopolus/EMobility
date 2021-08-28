@@ -34,7 +34,7 @@ namespace EMobility
         {
             var result = Parallel.ForEach<ChargingPoint>(ChargingPoints, async item =>
             {
-                var state = await RequestStatus(item);
+                var state = await RequestStatus(item, cancelationToken);
                 if (item.Connection.HasNewState(state))
                 {
                     HandleNewState(item);
@@ -54,16 +54,16 @@ namespace EMobility
             Log.Information("charge point {Name} has new state -> {State}", chargingPoint.Name, chargingPoint.Connection.State);
         }
 
-        private async Task<string> RequestStatus(ChargingPoint chargingPoint)
+        private async Task<string> RequestStatus(ChargingPoint chargingPoint, CancellationToken cancelationToken)
         {
             string resultText = String.Empty;
             try
             {
                 var command = "conn_state";
-                var result = await HttpClientConnection.GetAsync(String.Format("{0}{1}", chargingPoint.RestUrl, command));
+                var result = await HttpClientConnection.GetAsync(String.Format("{0}{1}", chargingPoint.RestUrl, command), cancelationToken);
                 if (result.StatusCode == System.Net.HttpStatusCode.OK)
                 {
-                    string responseBody = await result.Content.ReadAsStringAsync();
+                    string responseBody = await result.Content.ReadAsStringAsync(cancelationToken);
                     Log.Debug("[{Name}] Request[{Command}]  response -> {ResponseBody}", chargingPoint.Name, command, responseBody);
                     resultText = responseBody;
                 }
