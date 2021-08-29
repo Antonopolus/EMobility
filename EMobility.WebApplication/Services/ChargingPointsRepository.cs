@@ -7,25 +7,22 @@ namespace EMobility.WebApplication.Services
 {
     public class ChargingPointsRepository : IChargingPointsRepository
     {
-        public record ChargingPointMod(int Id, string Name, string RestUrl, string StationId);
-
-
-        private List<ChargingPointMod> ChargingPoints { get; } = new();
+        private List<ChargingPoint> ChargingPoints { get; } = new();
 
         public ChargingPointsRepository()
         {
             CreateData();
         }
 
-        public ChargingPointMod Add(ChargingPointMod newChargingPoint)
+        public ChargingPoint Add(ChargingPoint newChargingPoint)
         {
             ChargingPoints.Add(newChargingPoint);
             return newChargingPoint;
         }
 
-        public IEnumerable<ChargingPointMod> GetAll() => ChargingPoints;
+        public IEnumerable<ChargingPoint> GetAll() => ChargingPoints;
 
-        public ChargingPointMod GetById(int id) => ChargingPoints.FirstOrDefault(cp => cp.Id == id);
+        public ChargingPoint GetById(int id) => ChargingPoints.FirstOrDefault(cp => cp.Id == id);
 
         public void Delete(int id)
         {

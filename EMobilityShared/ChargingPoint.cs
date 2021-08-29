@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace EMobility
 {
-    public record ChargingPointModel(int Id, string Name, string RestUrl, string ChargePointId)
+    // Ladestation
+    public record ChargingPoint(int Id, string Name, string RestUrl, string ChargingPointId)
     {
     }
 }

@@ -11,7 +11,7 @@ using static EMobility.WebApplication.Services.ChargingPointsRepository;
 namespace EMobility.WebApplication.Controllers
 {
     [ApiController]
-    [Route("api/ChargingPoints")]
+    [Route("api/[controller]")]
     public class ChargingPointController : ControllerBase
     {
         private readonly IChargingPointsRepository repository;
@@ -28,7 +28,7 @@ namespace EMobility.WebApplication.Controllers
         }
 
         [HttpGet]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<ChargingPointMod>))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<ChargingPoint>))]
         public IActionResult GetAll()
         {
             return Ok(repository.GetAll());
@@ -36,7 +36,7 @@ namespace EMobility.WebApplication.Controllers
 
         [HttpGet("{id}", Name = nameof(GetById))]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ChargingPointMod))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ChargingPoint))]
         public IActionResult GetById(int id)
         {
             var cp = repository.GetById(id);
@@ -45,17 +45,17 @@ namespace EMobility.WebApplication.Controllers
         }
 
         [HttpPost]
-        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ChargingPointMod))]
+        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ChargingPoint))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public IActionResult Add([FromBody] ChargingPointMod cp)
+        public IActionResult Add([FromBody] ChargingPoint cp)
         {
-            if(cp.Id == 0)
+            if (cp.Id == 0)
             {
                 return BadRequest("Invalid ID");
             }
 
             var newCp = repository.Add(cp);
-            return CreatedAtAction(nameof(GetById), new { id = newCp.Id}, newCp);
+            return CreatedAtAction(nameof(GetById), new { id = newCp.Id }, newCp);
         }
 
         [HttpDelete]
@@ -68,7 +68,7 @@ namespace EMobility.WebApplication.Controllers
             {
                 repository.Delete(chargingPointToDeleteId);
             }
-            catch (ArgumentException )
+            catch (ArgumentException)
             {
                 return NotFound();
             }

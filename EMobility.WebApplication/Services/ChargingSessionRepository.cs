@@ -7,10 +7,6 @@ namespace EMobility.WebApi.Services
 {
     public class ChargingSessionRepository : IChargingSessionRepository
     {
-
-        public record ChargingSession(int Id, string SessionId, string ChargingPointId, DateTime StartDate, TimeSpan Duration, string AuthenticationId);
-
-
         private List<ChargingSession> ChargingSessions { get; } = new();
 
         public ChargingSessionRepository()
@@ -38,22 +34,32 @@ namespace EMobility.WebApi.Services
             ChargingSessions.Remove(ChargingSessionToDelete);
         }
 
+        ChargingSession IChargingSessionRepository.Update(int id, ChargingSession value)
+        {
+            var toUpdate = ChargingSessions.FirstOrDefault(cs => cs.Id == id);
+            if (toUpdate != null)
+            {
+                ChargingSessions.Remove(toUpdate);
+                ChargingSessions.Add(value);
+            }
+            return value;
+        }
 
         private void CreateData()
         {
             for (int i = 1; i < 10; i++)
             {
-                ChargingSessions.Add(new(i, String.Format("{0:00000}", i), "cpid", DateTime.UtcNow, TimeSpan.FromSeconds(i + 10), "christian")); 
-            }
-        }
-
-        public void Update(int id, ChargingSession value)
-        {
-            var toUpdate = ChargingSessions.FirstOrDefault(cs => cs.Id == id);
-            if(toUpdate != null)
-            {
-                ChargingSessions.Remove(toUpdate);
-                ChargingSessions.Add(value);
+                ChargingSession session = new()
+                {
+                    SessionId = i,
+                    StartDate = DateTime.UtcNow,
+                    LocalStartTime = TimeSpan.FromSeconds(i + 10),
+                    DurationOf = TimeSpan.FromSeconds(i + 10),
+                    Energy = 3,
+                    RfidTag = "RFID",
+                    ChargingStation = "Station"
+                };
+                ChargingSessions.Add(session);
             }
         }
     }

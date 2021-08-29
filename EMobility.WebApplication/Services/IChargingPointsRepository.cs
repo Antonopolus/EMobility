@@ -5,12 +5,12 @@ namespace EMobility.WebApplication.Services
 {
     public interface IChargingPointsRepository
     {
-        ChargingPointMod Add(ChargingPointMod newChargingPoint);
+        ChargingPoint Add(ChargingPoint newChargingPoint);
 
         void Delete(int id);
+
+        ChargingPoint GetById(int id);
         
-        ChargingPointMod GetById(int id);
-        
-        IEnumerable<ChargingPointMod> GetAll();
+        IEnumerable<ChargingPoint> GetAll();
     }
 }

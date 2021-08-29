@@ -27,12 +27,14 @@ namespace EMobilityService
         {
             client = new HttpClient();
             Manager = new ChargingPointManager(client);
+            _logger.LogInformation("Worker started");
             return base.StartAsync(cancellationToken);
         }
 
         public override Task StopAsync(CancellationToken cancellationToken)
         {
             client?.Dispose();
+            _logger.LogInformation("Worker stoped");
             return base.StopAsync(cancellationToken);
         }
 
@@ -41,7 +43,7 @@ namespace EMobilityService
             while (!stoppingToken.IsCancellationRequested)
             {
                 if(Manager != null)
-                    Manager.CheckVehicleConnectionStates(stoppingToken);
+                    await Manager.CheckVehicleConnectionStates(stoppingToken);
 
                 await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken);
             }

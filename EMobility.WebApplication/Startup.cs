@@ -1,9 +1,11 @@
+using EMobility.WebApi;
 using EMobility.WebApi.Services;
 using EMobility.WebApplication.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -30,7 +32,12 @@ namespace EMobility.WebApplication
         {
             services.AddSingleton<IChargingPointsRepository, ChargingPointsRepository>();
             services.AddSingleton<IChargingSessionRepository, ChargingSessionRepository>();
+
+            services.AddDbContext<EvChargerContext>(options => options.UseSqlServer(Configuration["ConnectionStrings:DefaultConnection"]));
             
+            services.AddScoped<PriceManager>();
+            services.AddScoped<LogManager>();
+
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {

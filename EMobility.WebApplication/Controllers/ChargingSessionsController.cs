@@ -9,8 +9,8 @@ using static EMobility.WebApi.Services.ChargingSessionRepository;
 
 namespace EMobility.WebApi.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("api/[controller]")]
     public class ChargingSessionsController : ControllerBase
     {
         readonly IChargingSessionRepository repository;
@@ -29,21 +29,20 @@ namespace EMobility.WebApi.Controllers
         }
 
         // GET api/<ChargingSessionsController>/5
-        [HttpGet("{id}", Name = nameof(GetById))]
+        [HttpGet("{id}", Name = nameof(GetSessionById))]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ChargingSession))]
-        public IActionResult GetById(int id)
+        public IActionResult GetSessionById(int id)
         {
-            var cp = repository.GetById(id);
-            if (cp == null) return NotFound();
-            return Ok(cp);
+            var session = repository.GetById(id);
+            if (session == null) return NotFound();
+            return Ok(session);
         }
 
         // POST api/<ChargingSessionsController>
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ChargingSession))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-
         public IActionResult Post([FromBody] ChargingSession value)
         {
             if (value.Id < 1)
@@ -52,24 +51,24 @@ namespace EMobility.WebApi.Controllers
             }
 
             var newSession = repository.Add(value);
-            return CreatedAtAction(nameof(GetById), new { id = newSession.Id }, newSession);
+            return CreatedAtAction(nameof(GetSessionById), new { id = newSession.Id }, newSession);
         }
 
         // PUT api/<ChargingSessionsController>/5
         [HttpPut("{id}")]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ChargingSession))]
-        public IActionResult Put(int SessionToUpdateId, [FromBody] ChargingSession session)
+        public IActionResult Put(int id, [FromBody] ChargingSession session)
         {
-            var currentSession = repository.GetById(SessionToUpdateId);
+            var currentSession = repository.GetById(id);
             if (currentSession == null) return NotFound();
 
-            var updatedSession = repository.Update(SessionToUpdateId, session);
-            return CreatedAtAction(nameof(GetById), new { id = updatedSession.Id }, updatedSession);
+            var updatedSession = repository.Update(id, session);
+            return CreatedAtAction(nameof(GetSessionById), new { id = updatedSession.Id }, updatedSession);
         }
 
-        // DELETE api/<ChargingSessionsController>/5
-        [HttpDelete("{id}")]
+        // delete api/<chargingsessionscontroller>/5
+        [HttpDelete]
         [Route("{SessionToDeleteId}")]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]

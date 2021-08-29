@@ -6,14 +6,22 @@ using System.Threading.Tasks;
 
 namespace EMobility.Mennekes
 {
+    /// <summary>
+    /// The Mennekes Charger has a REST API.
+    /// </summary>
+    /// The connection state has the following constants:
+    /// static readonly string VEHICLE_CONNECTOR_ERROR = "vehicle_connector_error";
+    /// static readonly string NO_VEHICLE_CONNECTED = "no_vehicle_connected";
+    /// static readonly string VEHICLE_CONNECTED_SCHUKO = "vehicle_connected_schuko";
+    /// static readonly string VEHICLE_CHARGING_SCHUKO = "vehicle_charging_schuko";
+    /// static readonly string VEHICLE_CONNECTED_TYPE2 = "vehicle_connected_type2";
+    /// static readonly string VEHICLE_CHARGING_TYPE2 = "vehicle_charging_type2";
+    /// 
+    /// </summary>
     class MennekesVehicleConnection : VehicleConnection
     {
         static readonly string VEHICLE_CONNECTOR_ERROR = "vehicle_connector_error";
         static readonly string NO_VEHICLE_CONNECTED = "no_vehicle_connected";
-        //static readonly string VEHICLE_CONNECTED_SCHUKO = "vehicle_connected_schuko";
-        //static readonly string VEHICLE_CHARGING_SCHUKO = "vehicle_charging_schuko";
-        //static readonly string VEHICLE_CONNECTED_TYPE2 = "vehicle_connected_type2";
-        //static readonly string VEHICLE_CHARGING_TYPE2 = "vehicle_charging_type2";
 
         static readonly string VEHICLE_CHARGING = "vehicle_charging";
         static readonly string VEHICLE_CONNECTED = "vehicle_connected";
@@ -26,36 +34,36 @@ namespace EMobility.Mennekes
         internal VehicleConnectionType ConnectedType = VehicleConnectionType.NONE;
 
 
-        internal override VehicleConnectionState CheckState(string state)
+        internal override VehicleConnectionState CheckState(string newState)
         {
-            if (state.Equals(NO_VEHICLE_CONNECTED))
+            if (newState.Equals(NO_VEHICLE_CONNECTED))
             {
                 ConnectedType = VehicleConnectionType.NONE;
                 CurrentState = VehicleConnectionState.FREE;
             }
 
-            if (state.Equals(VEHICLE_CONNECTOR_ERROR))
+            if (newState.Equals(VEHICLE_CONNECTOR_ERROR))
             {
                 ConnectedType = VehicleConnectionType.NONE;
                 CurrentState = VehicleConnectionState.ERROR;
             }
 
-            if (state.Contains(CONNECTOR_TYPE_SCHUKO))
+            if (newState.Contains(CONNECTOR_TYPE_SCHUKO))
             {
                 ConnectedType = VehicleConnectionType.SCHUKO;
             }
 
-            if (state.Contains(CONNECTOR_TYPE_TYPE2))
+            if (newState.Contains(CONNECTOR_TYPE_TYPE2))
             {
                 ConnectedType = VehicleConnectionType.TYPE2;
             }
 
-            if (state.Contains(VEHICLE_CHARGING))
+            if (newState.Contains(VEHICLE_CHARGING))
             {
                 CurrentState = VehicleConnectionState.CHARGING;
             }
 
-            if (state.StartsWith(VEHICLE_CONNECTED))
+            if (newState.StartsWith(VEHICLE_CONNECTED))
             {
                 CurrentState = VehicleConnectionState.CONNECTED;
             }

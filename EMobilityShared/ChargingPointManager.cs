@@ -14,52 +14,93 @@ namespace EMobility
     {
         readonly HttpClient HttpClientConnection;
 
-        record ChargingPoint(int Id, string Name, string RestUrl, string ChargePointId, VehicleConnection Connection);
-        readonly List<ChargingPoint> ChargingPoints;
+        record ChargerConnection(int Id, string Name, string RestUrl, string ChargePointId, VehicleConnection Connection);
+        readonly List<ChargerConnection> ChargerConnections;
+        private record SessionInfo(string StationId, string AuthenticationId, int ElapsedTime, int TotalPower, int Power, int TransactionPower);
+        readonly List<SessionInfo> SessionInfos;
 
         public ChargingPointManager(HttpClient httpClient)
         {
+            SessionInfos = new();
             this.HttpClientConnection = httpClient;
 
-            ChargingPoints = new();
-            ChargingPoints.Add(new(-4, "TG Stellplatz 4", "http://172.16.0.146/rest/", "1384202.00082", new MennekesVehicleConnection()));     // Besucherparkplatz TG 4
-            ChargingPoints.Add(new(-5, "TG Stellplatz 5", "http://172.16.0.147/rest/", "1384202.00080", new MennekesVehicleConnection()));     // Mayer Thomas
-            ChargingPoints.Add(new(1, "Stellplatz 1", "http://172.16.0.148:81/rest/", "140812422.00057", new MennekesVehicleConnection()));    // Besucherparkplatz 1
-            ChargingPoints.Add(new(2, "Stellplatz 2", "http://172.16.0.148:82/rest/", "140812422.00057#2", new MennekesVehicleConnection()));  // Besucherparkplatz 2  / slave
-            ChargingPoints.Add(new(3, "Stellplatz 3", "http://172.16.0.149:81/rest/", "140612412.00041", new MennekesVehicleConnection()));    // Besucherparkplatz 3
-            ChargingPoints.Add(new(4, "Stellplatz 4", "http://172.16.0.149:82/rest/", "140612412.00041#2", new MennekesVehicleConnection()));  // Besucherparkplatz 4  / slave
+            ChargerConnections = new();
+            ChargerConnections.Add(new(-4, "TG Stellplatz 4", "http://172.16.0.146/rest/", "1384202.00082", new MennekesVehicleConnection()));     // Besucherparkplatz TG 4
+            ChargerConnections.Add(new(-5, "TG Stellplatz 5", "http://172.16.0.147/rest/", "1384202.00080", new MennekesVehicleConnection()));     // Mayer Thomas
+            ChargerConnections.Add(new(1, "Stellplatz 1", "http://172.16.0.148:81/rest/", "140812422.00057", new MennekesVehicleConnection()));    // Besucherparkplatz 1
+            ChargerConnections.Add(new(2, "Stellplatz 2", "http://172.16.0.148:82/rest/", "140812422.00057#2", new MennekesVehicleConnection()));  // Besucherparkplatz 2  / slave
+            ChargerConnections.Add(new(3, "Stellplatz 3", "http://172.16.0.149:81/rest/", "140612412.00041", new MennekesVehicleConnection()));    // Besucherparkplatz 3
+            ChargerConnections.Add(new(4, "Stellplatz 4", "http://172.16.0.149:82/rest/", "140612412.00041#2", new MennekesVehicleConnection()));  // Besucherparkplatz 4  / slave
         }
 
-        public void CheckVehicleConnectionStates(CancellationToken cancelationToken)
+        public async Task CheckVehicleConnectionStates(CancellationToken cancelationToken, bool proceedParallel = false)
         {
-            var result = Parallel.ForEach<ChargingPoint>(ChargingPoints, async item =>
+            if (proceedParallel)
             {
-                var state = await RequestStatus(item, cancelationToken);
-                if (item.Connection.HasNewState(state))
+                Parallel.ForEach<ChargerConnection>(ChargerConnections, async item =>
                 {
-                    HandleNewState(item);
-                }
-            });
-
+                    var state = await RequestStatus(item, cancelationToken);
+                    if (item.Connection.HasNewState(state))
+                    {
+                        await HandleNewState(item, cancelationToken);
+                    }
+                });
+            }
+            else
+            {
+                var tasks = ChargerConnections.Select(async point =>
+                {
+                    var state = await RequestStatus(point, cancelationToken);
+                    if (point.Connection.HasNewState(state))
+                    {
+                        await HandleNewState(point, cancelationToken);
+                    }
+                });
+                await Task.WhenAll(tasks);
+            }
         }
 
-        protected void CheckVehicleConnectionStates()
+        protected async Task CheckVehicleConnectionStates()
         {
             var cancelationToken = new CancellationToken();
-            CheckVehicleConnectionStates(cancelationToken);
+            await CheckVehicleConnectionStates(cancelationToken);
         }
 
-        private static void HandleNewState(ChargingPoint chargingPoint)
+        private async Task HandleNewState(ChargerConnection chargingPoint, CancellationToken cancelationToken)
         {
             Log.Information("charge point {Name} has new state -> {State}", chargingPoint.Name, chargingPoint.Connection.State);
+
+            if (chargingPoint.Connection.State == VehicleConnectionState.CHARGING)
+            {
+                Log.Information("charge point {Name} changed to charging mode", chargingPoint.Name);
+                var info = await RequestInfo(chargingPoint, cancelationToken);
+                SessionInfos.Add(info);
+            }
         }
 
-        private async Task<string> RequestStatus(ChargingPoint chargingPoint, CancellationToken cancelationToken)
+        private async Task<string> RequestStatus(ChargerConnection chargingPoint, CancellationToken cancelationToken)
+        {
+            string resultText = await Request(chargingPoint, "conn_state", cancelationToken);
+            return resultText;
+        }
+
+        private async Task<SessionInfo> RequestInfo(ChargerConnection chargingPoint, CancellationToken cancelationToken)
+        {
+            var stationId = await Request(chargingPoint, "cp_id", cancelationToken);                // station ID
+            var authenticationId = await Request(chargingPoint, "auth_uid", cancelationToken);      // RFID of current user
+            var duration = await Request(chargingPoint, "time_since_charging_start", cancelationToken);
+            var meterWh = await Request(chargingPoint, "meter_wh", cancelationToken);
+            var powerW = await Request(chargingPoint, "power_w", cancelationToken);
+            var transactionWh = await Request(chargingPoint, "transaction_wh", cancelationToken);
+
+            return new SessionInfo(stationId, authenticationId, Int32.Parse(duration), Int32.Parse(meterWh), Int32.Parse(powerW), Int32.Parse(transactionWh));
+        }
+
+        private async Task<string> Request(ChargerConnection chargingPoint, string command, CancellationToken cancelationToken)
         {
             string resultText = String.Empty;
             try
             {
-                var command = "conn_state";
                 var result = await HttpClientConnection.GetAsync(String.Format("{0}{1}", chargingPoint.RestUrl, command), cancelationToken);
                 if (result.StatusCode == System.Net.HttpStatusCode.OK)
                 {
