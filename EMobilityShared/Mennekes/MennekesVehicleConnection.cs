@@ -29,23 +29,18 @@ namespace EMobility.Mennekes
         static readonly string CONNECTOR_TYPE_SCHUKO = "schuko";
         static readonly string CONNECTOR_TYPE_TYPE2 = "type2";
 
-
-        internal VehicleConnectionState CurrentState = VehicleConnectionState.UNKNOWN;
-        internal VehicleConnectionType ConnectedType = VehicleConnectionType.NONE;
-
-
         internal override VehicleConnectionState CheckState(string newState)
         {
             if (newState.Equals(NO_VEHICLE_CONNECTED))
             {
                 ConnectedType = VehicleConnectionType.NONE;
-                CurrentState = VehicleConnectionState.FREE;
+                State = VehicleConnectionState.FREE;
             }
 
             if (newState.Equals(VEHICLE_CONNECTOR_ERROR))
             {
                 ConnectedType = VehicleConnectionType.NONE;
-                CurrentState = VehicleConnectionState.ERROR;
+                State = VehicleConnectionState.ERROR;
             }
 
             if (newState.Contains(CONNECTOR_TYPE_SCHUKO))
@@ -60,16 +55,15 @@ namespace EMobility.Mennekes
 
             if (newState.Contains(VEHICLE_CHARGING))
             {
-                CurrentState = VehicleConnectionState.CHARGING;
+                State = VehicleConnectionState.CHARGING;
             }
 
             if (newState.StartsWith(VEHICLE_CONNECTED))
             {
-                CurrentState = VehicleConnectionState.CONNECTED;
+               State = VehicleConnectionState.CONNECTED;
             }
 
-            State = CurrentState;
-            return this.CurrentState;
+            return State;
         }
     }
 }

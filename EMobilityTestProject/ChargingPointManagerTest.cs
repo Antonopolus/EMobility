@@ -44,5 +44,13 @@ namespace EMobilityTestProject
             Assert.NotNull(manager);
             manager.CheckVehicleConnectionStates(new CancellationToken());
         }
+
+        [Fact]
+        public void TestHasChargingSessionEnded()
+        {
+            var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+
+           
+        }
     }
 }

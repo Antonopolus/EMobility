@@ -12,7 +12,7 @@ namespace EMobilityTestProject
         public void Test()
         {
             MennekesVehicleConnection mennekesVehicleConnection = new();
-            Assert.Equal(VehicleConnectionState.UNKNOWN, mennekesVehicleConnection.CurrentState);
+            Assert.Equal(VehicleConnectionState.UNKNOWN, mennekesVehicleConnection.State);
         }
 
         [Fact]
@@ -20,7 +20,7 @@ namespace EMobilityTestProject
         {
             MennekesVehicleConnection MennekesVehicleConnection = new();
             MennekesVehicleConnection.CheckState("no_vehicle_connected");
-            Assert.Equal(VehicleConnectionState.FREE, MennekesVehicleConnection.CurrentState);
+            Assert.Equal(VehicleConnectionState.FREE, MennekesVehicleConnection.State);
         }
 
         [Fact]
@@ -28,7 +28,7 @@ namespace EMobilityTestProject
         {
             MennekesVehicleConnection MennekesVehicleConnection = new();
             MennekesVehicleConnection.CheckState("vehicle_connector_error");
-            Assert.Equal(VehicleConnectionState.ERROR, MennekesVehicleConnection.CurrentState);
+            Assert.Equal(VehicleConnectionState.ERROR, MennekesVehicleConnection.State);
         }
 
         [Theory]
@@ -38,7 +38,7 @@ namespace EMobilityTestProject
         {
             MennekesVehicleConnection MennekesVehicleConnection = new();
             MennekesVehicleConnection.CheckState(state);
-            Assert.Equal(VehicleConnectionState.CONNECTED, MennekesVehicleConnection.CurrentState);
+            Assert.Equal(VehicleConnectionState.CONNECTED, MennekesVehicleConnection.State);
         }
 
         [Theory]
@@ -48,7 +48,7 @@ namespace EMobilityTestProject
         {
             MennekesVehicleConnection MennekesVehicleConnection = new();
             MennekesVehicleConnection.CheckState(state);
-            Assert.Equal(VehicleConnectionState.CHARGING, MennekesVehicleConnection.CurrentState);
+            Assert.Equal(VehicleConnectionState.CHARGING, MennekesVehicleConnection.State);
         }
 
         [Theory]
@@ -58,7 +58,17 @@ namespace EMobilityTestProject
         {
             MennekesVehicleConnection MennekesVehicleConnection = new();
             MennekesVehicleConnection.CheckState(state);
-            //Assert.Equal(Type.SCHUKO, MennekesVehicleConnection.);
+            Assert.Equal(VehicleConnectionType.SCHUKO, MennekesVehicleConnection.ConnectedType);
+        }
+
+        [Theory]
+        [InlineData("vehicle_connected_type2")]
+        [InlineData("vehicle_charging_type2")]
+        public void TestTheoryType2(string state)
+        {
+            MennekesVehicleConnection MennekesVehicleConnection = new();
+            MennekesVehicleConnection.CheckState(state);
+            Assert.Equal(VehicleConnectionType.TYPE2, MennekesVehicleConnection.ConnectedType);
         }
     }
 }

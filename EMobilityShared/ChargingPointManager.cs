@@ -2,9 +2,11 @@
 using Serilog;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -72,9 +74,18 @@ namespace EMobility
 
             if (chargingPoint.Connection.State == VehicleConnectionState.CHARGING)
             {
-                Log.Information("charge point {Name} changed to charging mode", chargingPoint.Name);
                 var info = await RequestInfo(chargingPoint, cancelationToken);
                 SessionInfos.Add(info);
+            }
+
+            if (chargingPoint.Connection.HasChargingSessionEnded())
+            {
+                Log.Information("charge point {Name} charging ended", chargingPoint.Name);
+                string fileName = String.Format("{0}_Sessions.json", DateTime.Now.ToLongDateString());
+                using FileStream createStream = File.Create(fileName);
+                await JsonSerializer.SerializeAsync(createStream, SessionInfos);
+                await createStream.DisposeAsync();
+                SessionInfos.Clear();
             }
         }
 

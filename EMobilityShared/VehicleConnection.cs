@@ -12,6 +12,9 @@ namespace EMobility
     class VehicleConnection
     {
         public VehicleConnectionState State { get; internal set; }
+        private VehicleConnectionState PreviousState { get; set; }
+
+        internal VehicleConnectionType ConnectedType = VehicleConnectionType.NONE;
 
         string CurrentStateString = String.Empty;
 
@@ -23,6 +26,7 @@ namespace EMobility
             }
             else
             {
+                PreviousState = State;
                 CurrentStateString = newState;
                 State = CheckState(newState);
                 return true;
@@ -34,5 +38,11 @@ namespace EMobility
             return VehicleConnectionState.UNKNOWN;
         }
 
+        internal virtual bool HasChargingSessionEnded()
+        {
+            if (PreviousState == VehicleConnectionState.CHARGING) return true;
+
+            return false;
+        }
     }
 }

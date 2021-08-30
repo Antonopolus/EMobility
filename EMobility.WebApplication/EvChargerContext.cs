@@ -30,6 +30,14 @@ namespace EMobility
         {
         }
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            #region seed data
+
+            #endregion
+            base.OnModelCreating(modelBuilder);
+        }
+
         public DbSet<ChargingPoint> ChargingPoints { get; set; }
 
         public DbSet<Price> Prices { get; set; }
