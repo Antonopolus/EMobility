@@ -20,32 +20,38 @@ namespace EMobilityService
         public Worker(ILogger<Worker> logger)
         {
             _logger = logger;
-            _logger.LogInformation("Worker created");
+            _logger.LogInformation("Worker created ************");
         }
 
         public override Task StartAsync(CancellationToken cancellationToken)
         {
             client = new HttpClient();
             Manager = new ChargingPointManager(client);
-            _logger.LogInformation("Worker started");
+            _logger.LogInformation("Worker started ************");
+
             return base.StartAsync(cancellationToken);
         }
 
         public override Task StopAsync(CancellationToken cancellationToken)
         {
             client?.Dispose();
-            _logger.LogInformation("Worker stoped");
+            _logger.LogInformation("Worker stoped ************");
             return base.StopAsync(cancellationToken);
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            int counter = 0;
             while (!stoppingToken.IsCancellationRequested)
             {
                 if(Manager != null)
                     await Manager.CheckVehicleConnectionStates(stoppingToken);
 
-                await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken);
+                counter++;
+                _logger.LogInformation("Counter: {CounterVar}", counter);
+                if (counter == 5) throw new ApplicationException("sch.....");
+
+                await Task.Delay(TimeSpan.FromSeconds(3), stoppingToken);
             }
         }
     }
