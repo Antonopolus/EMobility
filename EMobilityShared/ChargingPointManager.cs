@@ -37,28 +37,51 @@ namespace EMobility
 
         public async Task CheckVehicleConnectionStates(CancellationToken cancelationToken, bool proceedParallel = false)
         {
-            if (proceedParallel)
+            //if (proceedParallel)
+            //{
+            //    Parallel.ForEach<ChargerConnection>(ChargerConnections, async item =>
+            //    {
+            //        var state = await RequestStatus(item, cancelationToken);
+            //        if (item.Connection.HasNewState(state))
+            //        {
+            //            await HandleNewState(item, cancelationToken);
+            //        }
+            //    });
+            //}
+            //else
+            //{
+            //    var tasks = ChargerConnections.Select(async point =>
+            //    {
+            //        var state = await RequestStatus(point, cancelationToken);
+            //        if (point.Connection.HasNewState(state))
+            //        {
+            //            await HandleNewState(point, cancelationToken);
+            //        }
+            //    });
+            //    await Task.WhenAll(tasks);
+            //}
+            await DoWork(cancelationToken);
+        }
+
+        private async Task DoWork(CancellationToken cancelationToken)
+        {
+            try
             {
-                Parallel.ForEach<ChargerConnection>(ChargerConnections, async item =>
+                string requestUrl = "http://heise.de";
+                var result = await HttpClientConnection.GetAsync(requestUrl, cancelationToken);
+                if (result.StatusCode == System.Net.HttpStatusCode.OK)
                 {
-                    var state = await RequestStatus(item, cancelationToken);
-                    if (item.Connection.HasNewState(state))
-                    {
-                        await HandleNewState(item, cancelationToken);
-                    }
-                });
+                    string responseBody = await result.Content.ReadAsStringAsync(cancelationToken);
+                    Log.Debug("Request[{RequestUrl}]  OK", requestUrl);
+                }
+                else
+                {
+                    Log.Error("HttpResponseCode: {0} -> {1}", result.StatusCode, result.Content);
+                }
             }
-            else
+            catch (Exception e)
             {
-                var tasks = ChargerConnections.Select(async point =>
-                {
-                    var state = await RequestStatus(point, cancelationToken);
-                    if (point.Connection.HasNewState(state))
-                    {
-                        await HandleNewState(point, cancelationToken);
-                    }
-                });
-                await Task.WhenAll(tasks);
+                Log.Error(e, "REST GET failed: ");
             }
         }
 
@@ -72,6 +95,9 @@ namespace EMobility
         {
             Log.Information("charge point {Name} has new state -> {State}", chargingPoint.Name, chargingPoint.Connection.State);
 
+            //ConnectionStateHandler handler = new ConnectionStateHandler();
+            //handler.OnNewState(chargingPoint);
+
             if (chargingPoint.Connection.State == VehicleConnectionState.CHARGING)
             {
                 var info = await RequestInfo(chargingPoint, cancelationToken);
@@ -83,7 +109,7 @@ namespace EMobility
                 Log.Information("charge point {Name} charging ended", chargingPoint.Name);
                 string fileName = String.Format("{0}_Sessions.json", DateTime.Now.ToLongDateString());
                 using FileStream createStream = File.Create(fileName);
-                await JsonSerializer.SerializeAsync(createStream, SessionInfos);
+                await JsonSerializer.SerializeAsync(createStream, SessionInfos, cancellationToken: cancelationToken);
                 await createStream.DisposeAsync();
                 SessionInfos.Clear();
             }

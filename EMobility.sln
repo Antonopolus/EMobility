@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EMobilityTestProject", "EMo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EMobility.WebApi", "EMobility.WebApplication\EMobility.WebApi.csproj", "{BE7D7F7A-F4D8-47CC-8734-CA1C000FDF4B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmobilityWebApp", "EmobilityWebApp\EmobilityWebApp.csproj", "{856ED679-BBAE-430C-B739-F912E4B37824}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{BE7D7F7A-F4D8-47CC-8734-CA1C000FDF4B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BE7D7F7A-F4D8-47CC-8734-CA1C000FDF4B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BE7D7F7A-F4D8-47CC-8734-CA1C000FDF4B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{856ED679-BBAE-430C-B739-F912E4B37824}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{856ED679-BBAE-430C-B739-F912E4B37824}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{856ED679-BBAE-430C-B739-F912E4B37824}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{856ED679-BBAE-430C-B739-F912E4B37824}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

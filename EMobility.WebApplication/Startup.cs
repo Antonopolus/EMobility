@@ -34,11 +34,21 @@ namespace EMobility.WebApplication
             services.AddSingleton<IChargingSessionRepository, ChargingSessionRepository>();
 
             services.AddDbContext<EvChargerContext>(options => options.UseSqlServer(Configuration["ConnectionStrings:DefaultConnection"]));
-            
+
             services.AddScoped<PriceManager>();
             services.AddScoped<LogManager>();
 
             services.AddControllers();
+            services.AddCors(poilcy =>
+            {
+                poilcy.AddPolicy(name: "OpenCorsPolicy", opt =>
+                {
+                    opt.AllowAnyOrigin()
+                        .AllowAnyHeader()
+                        .AllowAnyMethod();
+                });
+            });
+
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "EMobility.WebApplication", Version = "v1" });
@@ -56,6 +66,7 @@ namespace EMobility.WebApplication
             }
 
             app.UseHttpsRedirection();
+            app.UseCors(policyName: "OpenCorsPolicy");
 
             app.UseRouting();
 
