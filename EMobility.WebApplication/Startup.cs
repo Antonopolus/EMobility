@@ -35,7 +35,6 @@ namespace EMobility.WebApplication
 
             services.AddDbContext<EvChargerContext>(options => options.UseSqlServer(Configuration["ConnectionStrings:DefaultConnection"]));
 
-            services.AddScoped<PriceManager>();
             services.AddScoped<LogManager>();
 
             services.AddControllers();

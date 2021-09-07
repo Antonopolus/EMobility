@@ -7,15 +7,6 @@ using System.Threading.Tasks;
 
 namespace EMobility
 {
-    public class Price
-    {
-        public int Id { get; set; }
-
-        public string Product { get; set; }
-
-        public decimal ProductPrice { get; set; }
-    }
-
     /// <summary>
     /// Electric Vehicle Charger Context 
     /// The database context for:
@@ -33,6 +24,7 @@ namespace EMobility
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             #region seed data
+            modelBuilder.Entity<ChargingPoint>().HasData(EMobilityContext.GetChargingPoints());
 
             #endregion
             base.OnModelCreating(modelBuilder);
@@ -40,11 +32,8 @@ namespace EMobility
 
         public DbSet<ChargingPoint> ChargingPoints { get; set; }
 
-        public DbSet<Price> Prices { get; set; }
-
         public DbSet<ChargingSession> ChargingSessions { get; set; }
-        
-    }
 
+    }
 
 }
