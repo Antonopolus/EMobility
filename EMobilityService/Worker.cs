@@ -50,10 +50,15 @@ namespace EMobilityService
             while (!stoppingToken.IsCancellationRequested)
             {
                 using var scope = _serviceScopeFactory.CreateScope();
-                var dbContext = scope.ServiceProvider.GetRequiredService<EMobilityContext>();
+                var dbContext = scope.ServiceProvider.GetRequiredService<EMobilityDbContext>();
 
-                if (Manager != null)
-                    await Manager.CheckVehicleConnectionStatesAsync(stoppingToken);
+                var newCp = new ChargingPoint(0, "Name", @"http//heise.de/", "cpId");
+                dbContext.Add(newCp);
+                await dbContext.SaveChangesAsync();
+
+                Log.Information("new cp added: {cp}" , newCp.ToString());
+                //if (Manager != null)
+                //    await Manager.CheckVehicleConnectionStatesAsync(stoppingToken);
 
                 //if (DemoManager != null)
                 //    await DemoManager.CheckVehicleConnectionStatesAsync(stoppingToken);
@@ -62,7 +67,7 @@ namespace EMobilityService
                 //dbContext.Tests.Add(new Test() { Date = DateTime.Now });
                 //dbContext.SaveChanges();
 
-                await Task.Delay(TimeSpan.FromSeconds(3), stoppingToken);
+                await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
             }
         }
     }

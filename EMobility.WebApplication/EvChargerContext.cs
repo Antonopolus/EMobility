@@ -1,4 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Design;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,6 +36,16 @@ namespace EMobility
 
         public DbSet<ChargingSession> ChargingSessions { get; set; }
 
+        public class EvChargerContextFactory : IDesignTimeDbContextFactory<EvChargerContext>
+        {
+            public EvChargerContext CreateDbContext(string[] args)
+            {
+                var configuration = new ConfigurationBuilder().AddJsonFile("AppSettings.json").Build();
+                var optionsBuilder = new DbContextOptionsBuilder<EvChargerContext>();
+                optionsBuilder.UseSqlServer(configuration["ConnectionStrings:DefaultConnection"]);
+                return new EvChargerContext(optionsBuilder.Options);
+            }
+        }
     }
 
 }

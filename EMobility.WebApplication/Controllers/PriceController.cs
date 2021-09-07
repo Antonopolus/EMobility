@@ -16,33 +16,33 @@ namespace EMobility.WebApi.Controllers
     {
         private readonly EvChargerContext Context;
 
-        public readonly PriceManager Manager;
+        //public readonly PriceManager Manager;
         private readonly LogManager LogManager;
 
-        public PriceController(EvChargerContext context, PriceManager manager, LogManager logManager)
-        {
-            this.Context = context;
-            this.Manager = manager;
-            this.LogManager = logManager;
-        }
+        //public PriceController(EvChargerContext context, PriceManager manager, LogManager logManager)
+        //{
+        //    this.Context = context;
+        //    this.Manager = manager;
+        //    this.LogManager = logManager;
+        //}
 
 
-        [HttpPost]
-        [Route("fill")]
-        public async Task<IActionResult> CreateDemoData()
-        {
-            Context.Prices.Add(new Price { Product = "Apples", ProductPrice = 100 });
-            await Context.SaveChangesAsync();
-            return StatusCode((int)HttpStatusCode.Created);
-        }
+        //[HttpPost]
+        //[Route("fill")]
+        //public async Task<IActionResult> CreateDemoData()
+        //{
+        //    Context.Prices.Add(new Price { Product = "Apples", ProductPrice = 100 });
+        //    await Context.SaveChangesAsync();
+        //    return StatusCode((int)HttpStatusCode.Created);
+        //}
 
-        [HttpPost]
-        public async Task<IActionResult> PriceChange(PriceChangeDto priceChange)
-        {
-            Manager.ChangePrices(priceChange.PercentagePriceChange);
-            LogManager.LogMessage(priceChange.User, priceChange.PercentagePriceChange);
-            await Context.SaveChangesAsync();
-            return Ok();
-        }
+        //[HttpPost]
+        //public async Task<IActionResult> PriceChange(PriceChangeDto priceChange)
+        //{
+        //    Manager.ChangePrices(priceChange.PercentagePriceChange);
+        //    LogManager.LogMessage(priceChange.User, priceChange.PercentagePriceChange);
+        //    await Context.SaveChangesAsync();
+        //    return Ok();
+        //}
     }
 }
