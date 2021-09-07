@@ -8,18 +8,23 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using EMobility;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace EMobilityService
 {
     public class Worker : BackgroundService
     {
         private readonly ILogger<Worker> _logger;
-        ChargingPointManager? Manager;
+        IChargingPointManager? Manager;
+        IChargingPointManager? DemoManager;
         HttpClient? client;
 
-        public Worker(ILogger<Worker> logger)
+        private readonly IServiceScopeFactory _serviceScopeFactory;
+
+        public Worker(ILogger<Worker> logger, IServiceScopeFactory serviceScopeFactory)
         {
             _logger = logger;
+            _serviceScopeFactory = serviceScopeFactory;
             _logger.LogInformation("Worker created ************");
         }
 
@@ -27,6 +32,7 @@ namespace EMobilityService
         {
             client = new HttpClient();
             Manager = new ChargingPointManager(client);
+            DemoManager = new DemoChargingPointManager(client);
             _logger.LogInformation("Worker started ************");
 
             return base.StartAsync(cancellationToken);
@@ -41,15 +47,20 @@ namespace EMobilityService
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            int counter = 0;
             while (!stoppingToken.IsCancellationRequested)
             {
-                if(Manager != null)
-                    await Manager.CheckVehicleConnectionStates(stoppingToken);
+                using var scope = _serviceScopeFactory.CreateScope();
+                var dbContext = scope.ServiceProvider.GetRequiredService<EMobilityContext>();
 
-                counter++;
-                _logger.LogInformation("Counter: {CounterVar}", counter);
-                if (counter == 5) throw new ApplicationException("sch.....");
+                if (Manager != null)
+                    await Manager.CheckVehicleConnectionStatesAsync(stoppingToken);
+
+                //if (DemoManager != null)
+                //    await DemoManager.CheckVehicleConnectionStatesAsync(stoppingToken);
+
+
+                //dbContext.Tests.Add(new Test() { Date = DateTime.Now });
+                //dbContext.SaveChanges();
 
                 await Task.Delay(TimeSpan.FromSeconds(3), stoppingToken);
             }

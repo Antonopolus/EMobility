@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace EMobilityService
 {
@@ -21,39 +22,37 @@ namespace EMobilityService
                 .ReadFrom.Configuration(configuration)
                 .CreateLogger();
 
-
-            //Log.Logger = new LoggerConfiguration()
-            //     .MinimumLevel.Debug()
-            //     .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
-            //     .Enrich.FromLogContext()
-            //     .WriteTo.File("log.txt", rollingInterval: RollingInterval.Day)
-            //     .WriteTo.Console()
-            //     .CreateLogger();
-
             try
             {
                 Log.Information("Service Starting Up");
-                CreateHostBuilder(args)
-                 //   .UseSerilog()           // here we use it
+                CreateHostBuilder(args, configuration)
                     .Build().Run();
             }
             catch (Exception ex)
             {
+                // be aware of the diff from .NET5 to .NET6
+                // https://docs.microsoft.com/en-us/dotnet/core/compatibility/core-libraries/6.0/hosting-exception-handling
+                // in .NET5 this catch will never happen
                 Log.Fatal(ex, "There was a problem running the service!");
             }
             finally
             {
                 Log.CloseAndFlush();
             }
-
         }
 
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
+        public static IHostBuilder CreateHostBuilder(string[] args, IConfiguration configuration) =>
             Host.CreateDefaultBuilder(args)
                 .UseWindowsService()
                 .UseSerilog()
                 .ConfigureServices((hostContext, services) =>
                 {
+                    var optionsBuilder = new DbContextOptionsBuilder<EMobilityContext>();
+                    var test = configuration["ConnectionStrings:DefaultConnection"];
+                    var connectionString = "Server=(localdb)\\MSSQLLocalDB;Database=EMobility;Trusted_Connection=True";
+                    optionsBuilder.UseSqlServer(connectionString);
+                    services.AddScoped<EMobilityContext>(s => new EMobilityContext(optionsBuilder.Options));
+
                     services.AddHostedService<Worker>();
                 });
     }

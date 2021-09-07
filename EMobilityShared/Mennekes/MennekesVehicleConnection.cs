@@ -18,7 +18,7 @@ namespace EMobility.Mennekes
     /// static readonly string VEHICLE_CHARGING_TYPE2 = "vehicle_charging_type2";
     /// 
     /// </summary>
-    class MennekesVehicleConnection : VehicleConnection
+    public class MennekesVehicleConnection : VehicleConnection
     {
         static readonly string VEHICLE_CONNECTOR_ERROR = "vehicle_connector_error";
         static readonly string NO_VEHICLE_CONNECTED = "no_vehicle_connected";
@@ -29,7 +29,7 @@ namespace EMobility.Mennekes
         static readonly string CONNECTOR_TYPE_SCHUKO = "schuko";
         static readonly string CONNECTOR_TYPE_TYPE2 = "type2";
 
-        internal override VehicleConnectionState CheckState(string newState)
+        public override VehicleConnectionState CheckState(string newState)
         {
             if (newState.Equals(NO_VEHICLE_CONNECTED))
             {

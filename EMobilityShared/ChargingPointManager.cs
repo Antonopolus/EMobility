@@ -12,12 +12,15 @@ using System.Threading.Tasks;
 
 namespace EMobility
 {
-    public class ChargingPointManager
+    public class ChargingPointManager : IChargingPointManager
     {
         readonly HttpClient HttpClientConnection;
 
-        record ChargerConnection(int Id, string Name, string RestUrl, string ChargePointId, VehicleConnection Connection);
+        CancellationToken CancelationToken;
+
+        public record ChargerConnection(ChargingPoint ChargingPoint, MennekesVehicleConnection Connection);
         readonly List<ChargerConnection> ChargerConnections;
+
         private record SessionInfo(string StationId, string AuthenticationId, int ElapsedTime, int TotalPower, int Power, int TransactionPower);
         readonly List<SessionInfo> SessionInfos;
 
@@ -27,86 +30,79 @@ namespace EMobility
             this.HttpClientConnection = httpClient;
 
             ChargerConnections = new();
-            ChargerConnections.Add(new(-4, "TG Stellplatz 4", "http://172.16.0.146/rest/", "1384202.00082", new MennekesVehicleConnection()));     // Besucherparkplatz TG 4
-            ChargerConnections.Add(new(-5, "TG Stellplatz 5", "http://172.16.0.147/rest/", "1384202.00080", new MennekesVehicleConnection()));     // Mayer Thomas
-            ChargerConnections.Add(new(1, "Stellplatz 1", "http://172.16.0.148:81/rest/", "140812422.00057", new MennekesVehicleConnection()));    // Besucherparkplatz 1
-            ChargerConnections.Add(new(2, "Stellplatz 2", "http://172.16.0.148:82/rest/", "140812422.00057#2", new MennekesVehicleConnection()));  // Besucherparkplatz 2  / slave
-            ChargerConnections.Add(new(3, "Stellplatz 3", "http://172.16.0.149:81/rest/", "140612412.00041", new MennekesVehicleConnection()));    // Besucherparkplatz 3
-            ChargerConnections.Add(new(4, "Stellplatz 4", "http://172.16.0.149:82/rest/", "140612412.00041#2", new MennekesVehicleConnection()));  // Besucherparkplatz 4  / slave
-        }
-
-        public async Task CheckVehicleConnectionStates(CancellationToken cancelationToken, bool proceedParallel = false)
-        {
-            //if (proceedParallel)
-            //{
-            //    Parallel.ForEach<ChargerConnection>(ChargerConnections, async item =>
-            //    {
-            //        var state = await RequestStatus(item, cancelationToken);
-            //        if (item.Connection.HasNewState(state))
-            //        {
-            //            await HandleNewState(item, cancelationToken);
-            //        }
-            //    });
-            //}
-            //else
-            //{
-            //    var tasks = ChargerConnections.Select(async point =>
-            //    {
-            //        var state = await RequestStatus(point, cancelationToken);
-            //        if (point.Connection.HasNewState(state))
-            //        {
-            //            await HandleNewState(point, cancelationToken);
-            //        }
-            //    });
-            //    await Task.WhenAll(tasks);
-            //}
-            await DoWork(cancelationToken);
-        }
-
-        private async Task DoWork(CancellationToken cancelationToken)
-        {
-            try
+            foreach (var cp in EMobilityContext.GetChargingPoints())
             {
-                string requestUrl = "http://heise.de";
-                var result = await HttpClientConnection.GetAsync(requestUrl, cancelationToken);
-                if (result.StatusCode == System.Net.HttpStatusCode.OK)
-                {
-                    string responseBody = await result.Content.ReadAsStringAsync(cancelationToken);
-                    Log.Debug("Request[{RequestUrl}]  OK", requestUrl);
-                }
-                else
-                {
-                    Log.Error("HttpResponseCode: {0} -> {1}", result.StatusCode, result.Content);
-                }
-            }
-            catch (Exception e)
-            {
-                Log.Error(e, "REST GET failed: ");
+                var item = new ChargerConnection(cp, new MennekesVehicleConnection());
+                ChargerConnections.Add(item);
+
+                StateChangedHandler handler = new();
+                handler.Previous = VehicleConnectionState.CHARGING;
+                handler.State = VehicleConnectionState.CONNECTED;
+                handler.ExecuteChangetask = HandleChargingEnded;
+                item.Connection.StateChangedHandler.Add(handler);
             }
         }
 
-        protected async Task CheckVehicleConnectionStates()
+        public void CheckVehicleConnectionStates(CancellationToken cancelationToken)
         {
-            var cancelationToken = new CancellationToken();
-            await CheckVehicleConnectionStates(cancelationToken);
+            this.CancelationToken = cancelationToken;
+            Parallel.ForEach<ChargerConnection>(ChargerConnections, async connection =>
+            {
+                await CheckVehicleConnectionState(connection);
+            });
         }
 
-        private async Task HandleNewState(ChargerConnection chargingPoint, CancellationToken cancelationToken)
+        public async Task CheckVehicleConnectionStatesParallelAsync(CancellationToken cancelationToken)
         {
-            Log.Information("charge point {Name} has new state -> {State}", chargingPoint.Name, chargingPoint.Connection.State);
+            this.CancelationToken = cancelationToken;
+            await Task.Run(() => {
+                CheckVehicleConnectionStates(cancelationToken);
+            });
+        }
+
+        public async Task CheckVehicleConnectionStatesAsync(CancellationToken cancelationToken)
+        {
+            this.CancelationToken = cancelationToken;
+            var tasks = ChargerConnections.Select(async connection =>
+            {
+                await CheckVehicleConnectionState(connection);
+            });
+            await Task.WhenAll(tasks);
+        }
+
+        private async Task CheckVehicleConnectionState(ChargerConnection connection)
+        {
+            var state = await RequestStatus(connection, this.CancelationToken);
+            if (connection.Connection.HasNewState(state))
+            {
+                await HandleNewState(connection, this.CancelationToken);
+            }
+        }
+
+         private async Task HandleNewState(ChargerConnection chargerConnection, CancellationToken cancelationToken)
+        {
+            Log.Information("charge point {Name} has new state -> {State}", chargerConnection.ChargingPoint.Name, chargerConnection.Connection.State);
 
             //ConnectionStateHandler handler = new ConnectionStateHandler();
             //handler.OnNewState(chargingPoint);
 
-            if (chargingPoint.Connection.State == VehicleConnectionState.CHARGING)
+            foreach (var item in chargerConnection.Connection.StateChangedHandler)
             {
-                var info = await RequestInfo(chargingPoint, cancelationToken);
+                if(chargerConnection.Connection.State == item.State && chargerConnection.Connection.State == item.Previous)
+                {
+                    item.ExecuteChangetask?.Invoke(chargerConnection);
+                }
+            }
+
+            if (chargerConnection.Connection.State == VehicleConnectionState.CHARGING)
+            {
+                var info = await RequestInfo(chargerConnection.ChargingPoint, cancelationToken);
                 SessionInfos.Add(info);
             }
 
-            if (chargingPoint.Connection.HasChargingSessionEnded())
+            if (chargerConnection.Connection.HasChargingSessionEnded())
             {
-                Log.Information("charge point {Name} charging ended", chargingPoint.Name);
+                Log.Information("charge point {Name} charging ended", chargerConnection.ChargingPoint.Name);
                 string fileName = String.Format("{0}_Sessions.json", DateTime.Now.ToLongDateString());
                 using FileStream createStream = File.Create(fileName);
                 await JsonSerializer.SerializeAsync(createStream, SessionInfos, cancellationToken: cancelationToken);
@@ -115,13 +111,18 @@ namespace EMobility
             }
         }
 
-        private async Task<string> RequestStatus(ChargerConnection chargingPoint, CancellationToken cancelationToken)
+        private void HandleChargingEnded(ChargerConnection connection)
         {
-            string resultText = await Request(chargingPoint, "conn_state", cancelationToken);
+           
+        }
+
+        private async Task<string> RequestStatus(ChargerConnection chargingConnection, CancellationToken cancelationToken)
+        {
+            string resultText = await Request(chargingConnection.ChargingPoint, "conn_state", cancelationToken);
             return resultText;
         }
 
-        private async Task<SessionInfo> RequestInfo(ChargerConnection chargingPoint, CancellationToken cancelationToken)
+        private async Task<SessionInfo> RequestInfo(ChargingPoint chargingPoint, CancellationToken cancelationToken)
         {
             var stationId = await Request(chargingPoint, "cp_id", cancelationToken);                // station ID
             var authenticationId = await Request(chargingPoint, "auth_uid", cancelationToken);      // RFID of current user
@@ -130,10 +131,20 @@ namespace EMobility
             var powerW = await Request(chargingPoint, "power_w", cancelationToken);
             var transactionWh = await Request(chargingPoint, "transaction_wh", cancelationToken);
 
-            return new SessionInfo(stationId, authenticationId, Int32.Parse(duration), Int32.Parse(meterWh), Int32.Parse(powerW), Int32.Parse(transactionWh));
+            SessionInfo info = new
+            (
+                StationId: stationId,
+                AuthenticationId: authenticationId,
+                ElapsedTime: Int32.Parse(duration),
+                TotalPower: Int32.Parse(meterWh),
+                Power: Int32.Parse(powerW),
+                TransactionPower: Int32.Parse(transactionWh)
+            );
+
+            return info;
         }
 
-        private async Task<string> Request(ChargerConnection chargingPoint, string command, CancellationToken cancelationToken)
+        private async Task<string> Request(ChargingPoint chargingPoint, string command, CancellationToken cancelationToken)
         {
             string resultText = String.Empty;
             try

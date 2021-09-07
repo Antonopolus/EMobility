@@ -6,17 +6,24 @@ using System.Threading.Tasks;
 
 namespace EMobility
 {
-    enum VehicleConnectionState { UNKNOWN, FREE, CONNECTED, CHARGING, ERROR };
+    public  enum VehicleConnectionState { UNKNOWN, FREE, CONNECTED, CHARGING, ERROR };
     enum VehicleConnectionType { NONE, TYPE2, SCHUKO }
 
-    class VehicleConnection
+    public enum VehicleConnectionStateChanges { UNDEFINED, START_CHARGING, STOP_CHARGING, END_CHARGING, ON_ERROR };
+
+
+    public class VehicleConnection 
     {
-        public VehicleConnectionState State { get; internal set; }
+        public VehicleConnectionState State { get; set; }
+
+        public VehicleConnectionStateChanges LastStateChange = VehicleConnectionStateChanges.UNDEFINED;
         private VehicleConnectionState PreviousState { get; set; }
 
         internal VehicleConnectionType ConnectedType = VehicleConnectionType.NONE;
 
         string CurrentStateString = String.Empty;
+
+        public List<StateChangedHandler> StateChangedHandler = new();
 
         public bool HasNewState(string newState)
         {
@@ -29,13 +36,32 @@ namespace EMobility
                 PreviousState = State;
                 CurrentStateString = newState;
                 State = CheckState(newState);
+                LastStateChange = CheckChange();
                 return true;
             }
         }
 
-        internal virtual VehicleConnectionState CheckState(string newState)
+        public virtual VehicleConnectionState CheckState(string newState)
         {
             return VehicleConnectionState.UNKNOWN;
+        }
+
+        public virtual VehicleConnectionStateChanges CheckChange()
+        {
+            if(State == VehicleConnectionState.ERROR)
+                return VehicleConnectionStateChanges.ON_ERROR;
+
+            if (State == VehicleConnectionState.CHARGING)
+                return VehicleConnectionStateChanges.START_CHARGING;
+
+            if (PreviousState == VehicleConnectionState.CHARGING && State == VehicleConnectionState.CONNECTED)
+                return VehicleConnectionStateChanges.STOP_CHARGING;
+
+            if (PreviousState == VehicleConnectionState.CHARGING && State == VehicleConnectionState.FREE)
+                return VehicleConnectionStateChanges.STOP_CHARGING;
+
+
+            return VehicleConnectionStateChanges.UNDEFINED;
         }
 
         internal virtual bool HasChargingSessionEnded()
@@ -44,5 +70,17 @@ namespace EMobility
 
             return false;
         }
+
+        
+
+    }
+
+    public class StateChangedHandler
+    {
+        public Action<ChargingPointManager.ChargerConnection> ?ExecuteChangetask { get; set; }
+
+        public VehicleConnectionState Previous { get; set; }
+        public VehicleConnectionState State { get; set; }
+
     }
 }

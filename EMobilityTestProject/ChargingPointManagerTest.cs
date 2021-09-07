@@ -16,7 +16,7 @@ namespace EMobilityTestProject
     public class ChargingPointManagerTest
     {
         [Fact]
-        public void Test()
+        public async void Test()
         {
             var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
             handlerMock
@@ -42,7 +42,7 @@ namespace EMobilityTestProject
 
             ChargingPointManager manager = new(httpClient);
             Assert.NotNull(manager);
-            manager.CheckVehicleConnectionStates(new CancellationToken());
+            await manager.CheckVehicleConnectionStatesAsync(new CancellationToken());
         }
 
         [Fact]
