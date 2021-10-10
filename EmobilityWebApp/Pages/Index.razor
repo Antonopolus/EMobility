@@ -1,60 +1,63 @@
 ﻿@page "/"
 @inject IChargingStations ChargingPoints 
 
-<h1>Hello, world!</h1>
-
-Welcome to your new app.
-
-<SurveyPrompt Title="How is Blazor working for you?" />
+@*<h1>Hello, world!</h1>*@
+@*<SurveyPrompt Title="How is Blazor working for you?" />*@
 
 @if (data is not null) { 
     @foreach (var item in data)
     {
         <div class="row">
             <div class="col-md-6">
-                <h2>@item.Name</h2>
+                <h2>@item.Id @item.Name @item.RestUrl</h2>
             </div>
             <div class="col-md-6">
                 <button class="btn btn-primary" @onclick="@(e => AddCP(item))" >Add</button>
                 <button class="btn btn-warning" @onclick="@(e => UpdateCP(item))">Update</button>
                 <button class="btn btn-danger" @onclick="@(e => DeleteCP(item))">Delete</button>
             </div>
-
         </div>
-
     }
-
 }
 
 @code {
     private List<ChargerModel> data;
+    int i = 0;
 
     protected override async Task OnInitializedAsync()
     {
-        data = await ChargingPoints.GetChargingPoints();
+        List<ChargerModel> models = new();
+        models.Add(new ChargerModel(0,"Name"+ i++, "http://","ID"));
+        models.Add(new ChargerModel(0, "Name" + i++, "http://", "ID"));
+        models.Add(new ChargerModel(0, "Name" + i++, "http://", "ID"));
+        models.Add(new ChargerModel(0, "Name" + i++, "http://", "ID"));
+
+        data = models;
+        //data = await ChargingPoints.GetChargingPoints();
     }
 
     private async Task AddCP(ChargerModel model)
     {
-        await ChargingPoints.CreateChargingPoint(
-            new ChargerModel(
-                Id: data.Count() + 1,
-                Name: model.Name,
-                RestUrl: model.RestUrl,
-                ChargingPointId: model.ChargingPointId)
-            );
-        data = await ChargingPoints.GetChargingPoints();
+        //await ChargingPoints.CreateChargingPoint(
+        //    new ChargerModel(
+        //        Id: data.Count() + 1,
+        //        Name: model.Name,
+        //        RestUrl: model.RestUrl,
+        //        ChargingPointId: model.ChargingPointId)
+        //    );
+        //data = await ChargingPoints.GetChargingPoints();
+        data.Add(new ChargerModel(0, "Name"+ i++, "http://", "ID"));
     }
 
     private async Task UpdateCP(ChargerModel model)
     {
 
-        data = await ChargingPoints.GetChargingPoints();
+        //data = await ChargingPoints.GetChargingPoints();
     }
     private async Task DeleteCP(ChargerModel model)
     {
-
-        data = await ChargingPoints.GetChargingPoints();
+        data.Remove(model);
+        //data = await ChargingPoints.GetChargingPoints();
     }
 
 }

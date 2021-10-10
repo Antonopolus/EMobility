@@ -13,7 +13,19 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EMobilityTestProject", "EMo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EMobility.WebApi", "EMobility.WebApplication\EMobility.WebApi.csproj", "{BE7D7F7A-F4D8-47CC-8734-CA1C000FDF4B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmobilityWebApp", "EmobilityWebApp\EmobilityWebApp.csproj", "{856ED679-BBAE-430C-B739-F912E4B37824}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmobilityWebApp", "EmobilityWebApp\EmobilityWebApp.csproj", "{856ED679-BBAE-430C-B739-F912E4B37824}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleDi.Example", "ConsoleDi.Example\ConsoleDi.Example.csproj", "{2258E71C-035A-41EF-8D1E-4C0418C009E3}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EMobilitMvc", "EMobilitMvc\EMobilitMvc.csproj", "{683E415C-9AF0-4727-84D4-ED6F32DF947F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EMobilityApp", "EMobilityApp\EMobilityApp.csproj", "{E1763608-DB0A-44F0-A379-A77D59DB5EA9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EMobility.Data", "Emobility.Data\EMobility.Data.csproj", "{A70102E8-7890-4F53-9199-F3C44F6A149C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EMobility.Data.IntegrationTest", "EMobility.Data.IntegrationTest\EMobility.Data.IntegrationTest.csproj", "{98A36774-58A6-4F38-8A35-907C0A27FFE0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EMobility.WebApi.Test", "EMobility.WebApi.Test\EMobility.WebApi.Test.csproj", "{D96FE129-CE15-4375-831E-6B3BFF050ED8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +57,30 @@ Global
 		{856ED679-BBAE-430C-B739-F912E4B37824}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{856ED679-BBAE-430C-B739-F912E4B37824}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{856ED679-BBAE-430C-B739-F912E4B37824}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2258E71C-035A-41EF-8D1E-4C0418C009E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2258E71C-035A-41EF-8D1E-4C0418C009E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2258E71C-035A-41EF-8D1E-4C0418C009E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2258E71C-035A-41EF-8D1E-4C0418C009E3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{683E415C-9AF0-4727-84D4-ED6F32DF947F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{683E415C-9AF0-4727-84D4-ED6F32DF947F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{683E415C-9AF0-4727-84D4-ED6F32DF947F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{683E415C-9AF0-4727-84D4-ED6F32DF947F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E1763608-DB0A-44F0-A379-A77D59DB5EA9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E1763608-DB0A-44F0-A379-A77D59DB5EA9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E1763608-DB0A-44F0-A379-A77D59DB5EA9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E1763608-DB0A-44F0-A379-A77D59DB5EA9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A70102E8-7890-4F53-9199-F3C44F6A149C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A70102E8-7890-4F53-9199-F3C44F6A149C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A70102E8-7890-4F53-9199-F3C44F6A149C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A70102E8-7890-4F53-9199-F3C44F6A149C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{98A36774-58A6-4F38-8A35-907C0A27FFE0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{98A36774-58A6-4F38-8A35-907C0A27FFE0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{98A36774-58A6-4F38-8A35-907C0A27FFE0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{98A36774-58A6-4F38-8A35-907C0A27FFE0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D96FE129-CE15-4375-831E-6B3BFF050ED8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D96FE129-CE15-4375-831E-6B3BFF050ED8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D96FE129-CE15-4375-831E-6B3BFF050ED8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D96FE129-CE15-4375-831E-6B3BFF050ED8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

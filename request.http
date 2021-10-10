@@ -1,0 +1,7 @@
+POST https://localhost:5001/api/price
+Content-Type: application/json
+
+{
+    "user": "csc",
+    "percPriceChange": 0.9
+}
