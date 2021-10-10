@@ -1,4 +1,8 @@
-﻿using EMobility.WebApplication.Services;
+﻿using AutoMapper;
+using EMobility.Data;
+using EMobility.WebApi.Dtos;
+using EMobility.WebApi.Services.Async;
+using EMobility.WebApplication.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -6,7 +10,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using static EMobility.WebApplication.Services.ChargingPointsRepository;
 
 namespace EMobility.WebApplication.Controllers
 {
@@ -14,59 +17,68 @@ namespace EMobility.WebApplication.Controllers
     [Route("api/[controller]")]
     public class ChargingPointController : ControllerBase
     {
-        private readonly IChargingPointsRepository repository;
+        private readonly IChargingPointsService service;
+        private readonly IMessageBusClient MessageBus;
+        public readonly IMapper Mapper;
 
-        public ChargingPointController(ILogger<ChargingPointController> logger, IChargingPointsRepository repo)
+        public ChargingPointController(ILogger<ChargingPointController> logger, 
+                                        IChargingPointsService service, 
+                                        IMessageBusClient messageBus,
+                                        IMapper mapper)
         {
-            repository = repo;
+            this.service = service;
+            MessageBus = messageBus;
+            Mapper = mapper;
             logger.LogInformation("setup ChargingPointController");
-
-            foreach (var cp in repository.GetAll())
-            {
-                logger.LogInformation(cp.Name);
-            }
         }
 
         [HttpGet]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<ChargingPoint>))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<ChargingPointReadDto>))]
         public IActionResult GetAll()
         {
-            return Ok(repository.GetAll());
+            var mapped = Mapper.Map<List<ChargingPointReadDto>>(service.GetAll());
+            return Ok(mapped);
         }
 
         [HttpGet("{id}", Name = nameof(GetById))]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ChargingPoint))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ChargingPointReadDto))]
         public IActionResult GetById(int id)
         {
-            var cp = repository.GetById(id);
+            var cp = service.GetById(id);
             if (cp == null) return NotFound();
             return Ok(cp);
         }
 
         [HttpPost]
-        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ChargingPoint))]
+        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ChargingPointCreateDto))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public IActionResult Add([FromBody] ChargingPoint cp)
+        public IActionResult Add([FromBody] ChargingPointCreateDto cpCreateDto)
         {
-            if (cp.Id == 0)
+            if (cpCreateDto.ChargingPointId.Length == 0)
             {
-                return BadRequest("Invalid ID");
+                return BadRequest("Invalid ChargingPointId");
             }
+            var cp = Mapper.Map<ChargingPoint>(cpCreateDto);
+            var newCp = service.Add(cp);
+            var cpReadDto = Mapper.Map<ChargingPointReadDto>(newCp);
+            try {
+                MessageBus.PublishNewChargingPoint(newCp);
+            }
+            catch(Exception) { }
 
-            var newCp = repository.Add(cp);
-            return CreatedAtAction(nameof(GetById), new { id = newCp.Id }, newCp);
+            return CreatedAtAction(nameof(GetById), new { id = newCp.Id }, cpReadDto);
         }
 
         [HttpDelete]
-        [Route("{ChargingPointToDeleteId}")]
+        [Route("{id}")]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        public IActionResult Delete(int chargingPointToDeleteId)
+        public IActionResult Delete(int id)
         {
             try
             {
-                repository.Delete(chargingPointToDeleteId);
+                service.Delete(id);
             }
             catch (ArgumentException)
             {

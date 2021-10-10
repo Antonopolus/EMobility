@@ -1,9 +1,11 @@
-﻿using System;
+﻿using EMobility.Data;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace EMobility.WebApplication.Services
+namespace EMobility.WebApplication.Repositories
+
 {
     public class ChargingPointsRepository : IChargingPointsRepository
     {
@@ -17,6 +19,8 @@ namespace EMobility.WebApplication.Services
         public ChargingPoint Add(ChargingPoint newChargingPoint)
         {
             ChargingPoints.Add(newChargingPoint);
+            int nextId = ChargingPoints.Select(cp => cp.Id).Max() + 1;
+            newChargingPoint.Id = nextId;
             return newChargingPoint;
         }
 
@@ -29,7 +33,7 @@ namespace EMobility.WebApplication.Services
             var chargingPointToDelete = GetById(id);
             if (chargingPointToDelete == null)
             {
-                throw new ArgumentException("No charging point available with the given id", nameof(id));
+                throw new ArgumentException($"No charging point available with the given id [{id}]", nameof(id));
             }
             ChargingPoints.Remove(chargingPointToDelete);
         }

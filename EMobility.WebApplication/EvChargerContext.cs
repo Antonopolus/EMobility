@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using EMobility.Data;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 using System;
@@ -10,11 +11,11 @@ using System.Threading.Tasks;
 namespace EMobility
 {
     /// <summary>
-    /// Electric Vehicle Charger Context 
-    /// The database context for:
-    ///     Charging Stations
-    ///     Charging Sessions
-    ///     Charging Logs
+    /// Electric Vehicle Charger Context <br/>
+    /// The database context for: <br/>
+    ///     Charging Stations <br/>
+    ///     Charging Sessions <br/>
+    ///     Charging Logs <br/>
     /// </summary>
     public class EvChargerContext : DbContext
     {
@@ -26,7 +27,7 @@ namespace EMobility
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             #region seed data
-            modelBuilder.Entity<ChargingPoint>().HasData(EMobilityContext.GetChargingPoints());
+            modelBuilder.Entity<ChargingPoint>().HasData(ChargingPointEntityConfiguration.CreateData());
 
             #endregion
             base.OnModelCreating(modelBuilder);

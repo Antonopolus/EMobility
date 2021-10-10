@@ -1,5 +1,7 @@
 using EMobility.WebApi;
 using EMobility.WebApi.Services;
+using EMobility.WebApi.Services.Async;
+using EMobility.WebApplication.Repositories;
 using EMobility.WebApplication.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -30,12 +32,18 @@ namespace EMobility.WebApplication
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
             services.AddSingleton<IChargingPointsRepository, ChargingPointsRepository>();
+            services.AddSingleton<IChargingPointsService, ChargingPointsService>();
+
             services.AddSingleton<IChargingSessionRepository, ChargingSessionRepository>();
 
             services.AddDbContext<EvChargerContext>(options => options.UseSqlServer(Configuration["ConnectionStrings:DefaultConnection"]));
 
             services.AddScoped<LogManager>();
+
+            services.AddSingleton<IMessageBusClient, MessageBusContext>();
 
             services.AddControllers();
             services.AddCors(poilcy =>
