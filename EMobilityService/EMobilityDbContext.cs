@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace EMobilityService
 {
-    class EMobilityDbContext : DbContext
+    public class EMobilityDbContext : DbContext
     {
         public EMobilityDbContext(DbContextOptions<EMobilityDbContext> options) : base(options)
         {

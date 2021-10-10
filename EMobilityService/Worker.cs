@@ -21,7 +21,7 @@ namespace EMobilityService
 
         private readonly IServiceScopeFactory _serviceScopeFactory;
 
-        public Worker(ILogger<Worker> logger, IServiceScopeFactory serviceScopeFactory)
+        public Worker(ILogger<Worker> logger, IServiceScopeFactory serviceScopeFactory, EMobilityDbContext context)
         {
             _logger = logger;
             _serviceScopeFactory = serviceScopeFactory;
@@ -51,7 +51,7 @@ namespace EMobilityService
             {
                 using var scope = _serviceScopeFactory.CreateScope();
                 var dbContext = scope.ServiceProvider.GetRequiredService<EMobilityDbContext>();
-
+                 
                 var newCp = new ChargingPoint(0, "Name", @"http//heise.de/", "cpId");
                 dbContext.Add(newCp);
                 await dbContext.SaveChangesAsync();

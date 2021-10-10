@@ -48,10 +48,9 @@ namespace EMobilityService
                 .ConfigureServices((hostContext, services) =>
                 {
                     var optionsBuilder = new DbContextOptionsBuilder<EMobilityDbContext>();
-                    var test = configuration["ConnectionStrings:DefaultConnection"];
-                    var connectionString = "Server=(localdb)\\MSSQLLocalDB;Database=EMobility;Trusted_Connection=True";
-                    optionsBuilder.UseSqlServer(connectionString);
-                    services.AddScoped<EMobilityDbContext>(s => new EMobilityDbContext(optionsBuilder.Options));
+                    optionsBuilder.UseSqlServer(configuration["ConnectionStrings:DefaultConnection"]);
+
+                    services.AddSingleton<EMobilityDbContext>(s => new EMobilityDbContext(optionsBuilder.Options));
 
                     services.AddHostedService<Worker>();
                 });
